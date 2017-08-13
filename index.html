@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>CSV to Athena Bulk Import Fields</title>
+    <!-- Required meta tags -->
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <link href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" rel="stylesheet" integrity="sha384-wvfXpqpZZVQGK6TAh5PVlGOfQNHSoD2xbE+QkPxCAFlNEevoEH3Sl0sibVcOQVnN" crossorigin="anonymous">
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-alpha.6/css/bootstrap.min.css" integrity="sha384-rwoIResjU2yc3z8GV/NPeZWAv56rSmLldC3R/AZzGRnGxQQKnKkoFVhFQhNUwEyJ" crossorigin="anonymous">
+<style>
+    textarea {
+        width:100%;
+        height:500px;
+    }
+    .navbar {
+        border-bottom:1px solid #ebebeb;
+        margin-bottom:50px;
+        text-align: center;
+    }
+    textarea {
+        background-color:#ebf6ff;
+        padding:10px;
+    }
+</style>
+</head>
+<body>
+
+<nav class="navbar navbar-toggleable-md navbar-light bg-faded">
+    <button class="navbar-toggler navbar-toggler-right" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+        <span class="navbar-toggler-icon"></span>
+    </button>
+    <a class="navbar-brand" href="#">CSV to Athena Bulk Import Fields</a>
+    <div class="col-6">
+    </div>
+    <div class="col">
+        <a target="_blank" class="btn btn-outline-primary float-right" href="https://twitter.com/notMiloBejda"><i class="fa fa-twitter"> </i> @notmilobejda </a>
+
+    </div>
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+
+    </div>
+</nav>
+
+
+
+
+<div class="container">
+
+    <div class="row text-center">
+
+
+
+
+<div class="row">
+    <div class="col-12">
+        <h3>
+            Amazon Athena
+            <small class="text-muted">Converts your CSV file into bulk import properties for Amazon Athena. </small>
+        </h3>
+    </div>
+
+        <div class="col-2">
+
+        </div>
+        <div class="col-8">
+<img class="img-fluid" src="/howto.gif"/>
+        </div>
+</div>
+    </div>
+
+
+    <div class="row">
+        <div class="col">
+            <h2>Paste CSV</h2>
+
+            <div class="row">
+            <div class="col">
+
+
+            <label>Delimiter</label>
+            <input id="delimiter" value="," type="text"/>
+
+            </div>
+
+            <div class="col">
+            <label>Newline</label>
+            <input id="newline" value="" placeholder="auto detects by default" type="text"/>
+            </div>
+
+        </div>
+
+
+            <textarea class="rounded" id="input"></textarea>
+            <button id="convert" class="btn btn-primary">Convert</button>
+        </div>
+
+        <div class="col">
+            <h2>Key Types</h2>
+            <textarea class="rounded" id="output"></textarea>
+        </div>
+    </div>
+
+</div>
+
+
+<!-- jQuery first, then Tether, then Bootstrap JS. -->
+<script src="https://code.jquery.com/jquery-3.1.1.slim.min.js" integrity="sha384-A7FZj7v+d/sdmMqp/nOQwliLvUsJfDHW+k9Omg/a/EheAdgtzNs3hpfag6Ed950n" crossorigin="anonymous"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/tether/1.4.0/js/tether.min.js" integrity="sha384-DztdAPBWPRXSA/3eYEEUWrWCy7G5KFbe8fFjk5JAIxUYHKkDx6Qin1DkWx51bBrb" crossorigin="anonymous"></script>
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-alpha.6/js/bootstrap.min.js" integrity="sha384-vBWWzlZJ8ea9aCX4pEW3rVHjgjt7zpkNpZk+02D9phzyeVkE+jo0ieGizqPLForn" crossorigin="anonymous"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/4.3.5/papaparse.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.18.1/moment.js"></script>
+
+
+<script>
+    $(document).ready(function(){
+
+
+
+        $('#convert').on('click',function(){
+            var block = "";
+
+
+            var config = {
+                delimiter: $("input#delimiter").val() || ",",	// auto-detect
+                newline: $("input#newline").val() || "",
+                quoteChar: '"',
+                header: false,
+                dynamicTyping: false,
+                preview: 0,
+                encoding: "",
+                complete: undefined,
+                error: function(){
+                    alert("Error")
+                }
+
+            }
+            var input = $("textarea#input").val();
+             var data = Papa.parse(input);
+             var header = data.data.shift();
+
+
+
+            var isBoolean = function(mixedVar) {
+                return mixedVar == "false" || mixedVar == "true";
+            };
+            var isFloat = function(mixedVar){
+                return +mixedVar === mixedVar && (!isFinite(mixedVar) || !!(mixedVar % 1))
+            };
+            var isInt = function(mixedVar){
+                 var pattern = /^\d+$/;
+                return pattern.test(mixedVar);  // returns a boolean
+            };
+            var isDate = function(mixedVar){
+                return moment(mixedVar,"YYYY-MM-DD",true).isValid();
+            };
+
+            var isTimestamp = function(mixedVar){
+                return moment(mixedVar,"YYYY-MM-DD HH:MM:SS.fffffffff",true).isValid();
+            };
+
+            var isString = function(mixedVar){
+                return (/^[a-zA-Z]/.test(mixedVar));
+            };
+
+            var determineType = function(col){
+                var dataTypes = {
+                    "TINYINT":[],
+                    "SMALLINT":[],
+                    "INT":[],
+                    "BIGINT":[],
+                    "BOOLEAN":[],
+                    "DOUBLE":[],
+                    "STRING":[],
+                    "BINARY":[],
+                    "TIMESTAMP":[],
+                    "DECIMAL":[],
+                    "DATE":[],
+                    "VARCHAR":[]
+                };
+
+                data.data.forEach(function(row,index){
+                    var item = row[col];
+                    if(isString(item)){
+                        dataTypes["STRING"].push(item);
+                        return;
+                    }
+
+                    if(isInt(item)){
+                        dataTypes["INT"].push(item);
+                        return;
+                    }
+
+                    if(isDate(item)){
+                        dataTypes["DATE"].push(item);
+                        return;
+                    }
+
+                    if(isFloat(item)){
+                        dataTypes["DECIMAL"].push(item);
+                        return;
+                    }
+
+                    if(isBoolean(item)){
+                        dataTypes["BOOLEAN"].push(item);
+                        return;
+                    }
+
+                    if(isTimestamp(item)){
+                        console.log("TIME ",item)
+                        dataTypes["TIMESTAMP"].push(item);
+                        return;
+                    }
+
+
+
+
+
+                    dataTypes["VARCHAR"].push(item);
+
+                });
+                console.log("ITEM ",dataTypes)
+
+                var dataType = {type:"VARCHAR",length:0};
+                Object.keys(dataTypes).forEach(function(key){
+                    if(dataTypes[key].length > dataType.length) {
+                        dataType.type = key;
+                        dataType.length = dataTypes[key].length;
+                    }
+                });
+                return dataType;
+
+            };
+            var cols = header.map(function(col,index){
+                console.log("COL "+index,col)
+                var dataType = determineType(index);
+                var str = $.trim(col) + " "+dataType.type+",";
+                return str
+
+            });
+            var output = cols.join("\n").replace(/,\s*$/, "");
+            $("textarea#output").val(output);
+
+
+
+
+
+
+
+
+
+        })
+
+    })
+
+</script>
+
+
+</body>
+</html>
