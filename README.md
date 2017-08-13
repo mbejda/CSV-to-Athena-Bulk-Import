@@ -1,4 +1,4 @@
-## Converts your CSV file into bulk import properties for Amazon Athena
+## Converts your CSV file into bulk import headers for Amazon Athena
 ![alt text](https://github.com/mbejda/CSV-to-Athena-Bulk-Import/blob/master/howto.gif "mbejda")
 
 [Click Here to Use It!](https://mbejda.github.io/CSV-to-Athena-Bulk-Import/)
@@ -9,7 +9,7 @@ Goto [Amazon Athena](https://aws.amazon.com/athena/) and create a new table. Cli
 The tool will extract the headers and output "key type" values compatible with the Amazon Athena bulk import. I added some basic datatype inferencing capability also.
 Enjoy!
 
-#### Inferences the Following Data Types
+#### Inferences The Following Data Types
 - Date
 - Integer
 - Boolean
