@@ -16,6 +16,8 @@ Enjoy!
 - String
 
 
+<hr>
 
 [mbejda.com](https://mbejda.com)
-[@notmilobejda]([mbejda.com](https://mbejda.com))
+
+[@notmilobejda](https://mbejda.com)
